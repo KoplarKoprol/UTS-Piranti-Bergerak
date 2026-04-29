@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Aplikasi Moreno</string>
+    <string name="hint_nama">Masukkan Nama Anda</string>
+    <string name="btn_label_next">Kirim Data</string>
+    <string name="welcome_msg">Selamat datang,</string>
+    <string name="detail_title">Halaman Detail</string>
+    <string name="btnKosong">Kosongkan data</string>
+</resources>
