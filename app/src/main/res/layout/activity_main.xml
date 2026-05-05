@@ -1,28 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="20dp"
-    android:gravity="center"
-    android:background="@color/white">
+    android:fillViewport="true">
 
-    <EditText
-        android:id="@+id/inputNama"
+    <LinearLayout
+        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_nama"
-        android:inputType="textPersonName"
-        android:minHeight="48dp" />
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center_horizontal"
+        android:background="@color/white">
 
-    <Button
-        android:id="@+id/btnNext"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:backgroundTint="@color/primary_blue"
-        android:text="@string/btn_label_next"
-        android:textColor="@color/white" />
+        <EditText
+            android:id="@+id/inputNama"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_nama"
+            android:inputType="textPersonName"
+            android:minHeight="48dp" />
 
-</LinearLayout>
+        <Button
+            android:id="@+id/btnKamera"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/primary_blue"
+            android:text="Ambil Foto &amp; Lokasi"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnLihatData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/primary_blue"
+            android:text="Lihat Riwayat"
+            android:textColor="@color/white" />
+
+        <ImageView
+            android:id="@+id/ivFoto"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="20dp"
+            android:scaleType="centerCrop"
+            android:background="@color/gray_light"
+            android:contentDescription="Foto Preview" />
+
+        <org.osmdroid.views.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:layout_marginTop="20dp" />
+
+    </LinearLayout>
+</ScrollView>

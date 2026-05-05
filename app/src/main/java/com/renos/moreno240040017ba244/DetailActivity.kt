@@ -1,20 +1,25 @@
 package com.renos.moreno240040017ba244
 
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
 class DetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_detail)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        val tvDetail = findViewById<TextView>(R.id.tvDetailData)
+        val btnBack = findViewById<Button>(R.id.btnBack)
+
+        // P3: Menerima data dari Intent
+        val data = intent.getStringExtra("DATA_DETAIL")
+        tvDetail.text = data ?: "Data tidak ditemukan"
+
+        // P3: Navigasi kembali
+        btnBack.setOnClickListener {
+            finish()
         }
     }
 }

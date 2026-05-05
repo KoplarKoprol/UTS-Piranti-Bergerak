@@ -5,15 +5,49 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="20dp"
-    android:gravity="center">
+    android:gravity="center_horizontal"
+    android:background="@color/white">
 
     <TextView
-        android:id="@+id/viewNama"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/welcome_msg"
-        android:textSize="24sp"
+        android:text="Detail Riwayat Absensi"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:textColor="@color/black" />
+        android:textColor="@color/primary_blue"
+        android:layout_marginBottom="30dp" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/tvDetailData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Data akan muncul di sini"
+                android:textSize="18sp"
+                android:textColor="@color/black" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <Button
+        android:id="@+id/btnBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Kembali"
+        android:backgroundTint="@color/primary_blue" />
 
 </LinearLayout>
