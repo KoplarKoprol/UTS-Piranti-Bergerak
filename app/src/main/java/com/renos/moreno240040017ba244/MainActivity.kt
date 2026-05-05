@@ -11,29 +11,63 @@ import androidx.core.view.WindowInsetsCompat
 //Pert6 materi ada bahas gabung button kirim nama ma button foto(ketika ngambil foto nama dan lokasi langsung kekirim juga, makanya digabung aja)
 //12 mei deadline projeknya karena rabu wisuda, bikin videonya screen recording atau tampilan visual android studio boleh juga, dikasi penjelasan
 //ngumpulin link video aja di txt
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        EdgeToEdge.enable(this)
-        setContentView(R.layout.activity_main)
+// Tambahkan di dalam class MainActivity
+private lateinit var dbHelper: DatabaseHelper
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+// P4: Register Activity untuk Kamera[cite: 1]
+private val ambilFoto = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    if (result.resultCode == RESULT_OK) {
+        val imageBitmap = result.data?.extras?.get("data") as Bitmap
+        findViewById<ImageView>(R.id.ivFoto).setImageBitmap(imageBitmap)
+        // Setelah foto diambil, langsung picu ambil lokasi & simpan[cite: 3]
+        ambilLokasiGps(findViewById(R.id.mapView))
+    }
+}
 
-        // Inisialisasi View
-        val btnNext = findViewById<Button>(R.id.btnNext)
-        val inputNama = findViewById<EditText>(R.id.inputNama)
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    // P5: Inisialisasi OSM sebelum setContentView[cite: 2]
+    Configuration.getInstance().load(this, getSharedPreferences("osmdroid", MODE_PRIVATE))
+    setContentView(R.layout.activity_main)
 
-        btnNext.setOnClickListener {
-            val nama = inputNama.text.toString()
+    dbHelper = DatabaseHelper(this)
+    val sharedPref = getSharedPreferences("DataUser", MODE_PRIVATE)
+    val inputNama = findViewById<EditText>(R.id.inputNama)
 
-            // Pindah ke DetailActivity dengan membawa data
-            val intent = Intent(this, DetailActivity::class.java)
-            intent.putExtra("EXTRA_NAMA", nama)
-            startActivity(intent)
-        }
+    // P6: SharedPreferences - Load nama otomatis[cite: 3]
+    val namaLama = sharedPref.getString("KEY_NAMA", "")
+    if (!namaLama.isNullOrEmpty()) inputNama.setText(namaLama)
+
+    // P4: Klik Tombol Kamera[cite: 1]
+    findViewById<Button>(R.id.btnKamera).setOnClickListener {
+        // Simpan nama ke SharedPreferences dulu[cite: 3]
+        sharedPref.edit().putString("KEY_NAMA", inputNama.text.toString()).apply()
+
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        ambilFoto.launch(intent)
+    }
+}
+
+// P5 & P6: Ambil Lokasi dan Simpan ke SQLite[cite: 2, 3]
+private fun ambilLokasiGps(mapView: MapView) {
+    val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    // Cek Permission (Pastikan sudah minta izin runtime)[cite: 2]
+    val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+        ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+
+    location?.let {
+        val userPoint = GeoPoint(it.latitude, it.longitude)
+
+        // Update Peta[cite: 2]
+        val marker = Marker(mapView)
+        marker.position = userPoint
+        marker.title = "Lokasi Absen"
+        mapView.overlays.add(marker)
+        mapView.controller.animateTo(userPoint)
+
+        // P6: Simpan ke Database[cite: 3]
+        val nama = getSharedPreferences("DataUser", MODE_PRIVATE).getString("KEY_NAMA", "Anonim")!!
+        dbHelper.simpanRiwayat(nama, it.latitude.toString(), it.longitude.toString())
+        Toast.makeText(this, "Data & Lokasi Tersimpan!", Toast.LENGTH_SHORT).show()
     }
 }
