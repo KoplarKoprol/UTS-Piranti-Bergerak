@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/black">
 
     <LinearLayout
         android:id="@+id/main"
@@ -10,14 +11,25 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="20dp"
-        android:gravity="center_horizontal"
-        android:background="@color/white">
+        android:gravity="center_horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Form Absensi"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp" />
 
         <EditText
             android:id="@+id/inputNama"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/hint_nama"
+            android:textColorHint="#BBBBBB"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/white"
             android:inputType="textPersonName"
             android:minHeight="48dp" />
 
@@ -25,7 +37,7 @@
             android:id="@+id/btnKamera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:backgroundTint="@color/primary_blue"
             android:text="Ambil Foto &amp; Lokasi"
             android:textColor="@color/white" />
@@ -45,7 +57,7 @@
             android:layout_height="200dp"
             android:layout_marginTop="20dp"
             android:scaleType="centerCrop"
-            android:background="@color/gray_light"
+            android:background="#333333"
             android:contentDescription="Foto Preview" />
 
         <org.osmdroid.views.MapView

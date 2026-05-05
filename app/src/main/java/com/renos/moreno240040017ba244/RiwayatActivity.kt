@@ -24,7 +24,8 @@ class RiwayatActivity : AppCompatActivity() {
 
         muatData()
 
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listData)
+        // Menggunakan layout kustom item_riwayat agar teks berwarna putih di background hitam
+        adapter = ArrayAdapter(this, R.layout.item_riwayat, listData)
         lvRiwayat.adapter = adapter
 
         // P7: Klik item untuk lihat detail (Navigasi P3)
