@@ -16,7 +16,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Form Absensi"
+            android:text="Form Absensi &amp; MQTT"
             android:textColor="@color/white"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -37,7 +37,7 @@
             android:id="@+id/btnKamera"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="10dp"
             android:backgroundTint="@color/primary_blue"
             android:text="Ambil Foto &amp; Lokasi"
             android:textColor="@color/white" />
@@ -49,6 +49,34 @@
             android:layout_marginTop="10dp"
             android:backgroundTint="@color/primary_blue"
             android:text="Lihat Riwayat"
+            android:textColor="@color/white" />
+
+        <!-- Fitur MQTT Publish -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Kirim Pesan MQTT"
+            android:textColor="@color/white"
+            android:layout_marginTop="20dp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/etPesanKirim"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ketik pesan di sini..."
+            android:textColorHint="#BBBBBB"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/white"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/btnPublish"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:backgroundTint="@color/primary_blue"
+            android:text="Publish Pesan"
             android:textColor="@color/white" />
 
         <ImageView

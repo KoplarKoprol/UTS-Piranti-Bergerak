@@ -9,6 +9,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -18,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
 import androidx.core.os.BundleCompat
+import org.eclipse.paho.client.mqttv3.*
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import org.osmdroid.config.Configuration
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
@@ -27,8 +30,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DatabaseHelper
     private lateinit var lm: LocationManager
+    private lateinit var mqttClient: MqttAsyncClient
 
-    // P4: Register Kamera
     private val ambilFoto = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val imageBitmap = result.data?.extras?.let {
@@ -37,44 +40,81 @@ class MainActivity : AppCompatActivity() {
             imageBitmap?.let {
                 findViewById<ImageView>(R.id.ivFoto).setImageBitmap(it)
             }
-
-            // P6: Setelah foto, ambil lokasi dan simpan
             ambilLokasiGps()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // P5: Inisialisasi OSM
         Configuration.getInstance().load(this, getSharedPreferences("osmdroid", MODE_PRIVATE))
         setContentView(R.layout.activity_main)
 
         dbHelper = DatabaseHelper(this)
         lm = getSystemService(LOCATION_SERVICE) as LocationManager
         
-        val sharedPref = getSharedPreferences("DataUser", MODE_PRIVATE)
         val inputNama = findViewById<EditText>(R.id.inputNama)
+        val etPesanKirim = findViewById<EditText>(R.id.etPesanKirim)
+        val btnPublish = findViewById<Button>(R.id.btnPublish)
         val btnKamera = findViewById<Button>(R.id.btnKamera)
         val btnRiwayat = findViewById<Button>(R.id.btnLihatData)
 
-        val namaLama = sharedPref.getString("KEY_NAMA", "")
-        if (!namaLama.isNullOrEmpty()) inputNama.setText(namaLama)
+        // --- INISIALISASI MQTT (Java Client) ---
+        val serverUri = "tcp://broker.hivemq.com:1883"
+        val clientId = MqttClient.generateClientId()
+        
+        try {
+            mqttClient = MqttAsyncClient(serverUri, clientId, MemoryPersistence())
+            val options = MqttConnectOptions().apply { isCleanSession = true }
+            
+            mqttClient.connect(options, null, object : IMqttActionListener {
+                override fun onSuccess(asyncActionToken: IMqttToken?) {
+                    Log.d("MQTT_DEDEK", "KONEKSI BERHASIL")
+                }
+                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                    Log.e("MQTT_DEDEK", "KONEKSI GAGAL: ${exception?.message}")
+                }
+            })
+        } catch (e: Exception) {
+            Log.e("MQTT_DEDEK", "Error MQTT Init: ${e.message}")
+        }
+
+        btnPublish.setOnClickListener {
+            val isiPesan = etPesanKirim.text.toString()
+            if (isiPesan.isNotEmpty()) {
+                try {
+                    val message = MqttMessage(isiPesan.toByteArray())
+                    message.qos = 1
+                    
+                    mqttClient.publish("stikom/bali/dedek", message, null, object : IMqttActionListener {
+                        override fun onSuccess(asyncActionToken: IMqttToken?) {
+                            Log.d("MQTT_DEDEK", "PUBLISH BERHASIL: $isiPesan")
+                            runOnUiThread {
+                                Toast.makeText(this@MainActivity, "Pesan Terkirim!", Toast.LENGTH_SHORT).show()
+                                etPesanKirim.setText("")
+                            }
+                        }
+                        override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                            Log.e("MQTT_DEDEK", "PUBLISH GAGAL: ${exception?.message}")
+                        }
+                    })
+                } catch (e: Exception) {
+                    Log.e("MQTT_DEDEK", "PUBLISH GAGAL: ${e.message}")
+                }
+            }
+        }
 
         btnKamera.setOnClickListener {
-            val nama = inputNama.text.toString()
-            if (nama.isEmpty()) {
-                Toast.makeText(this, "Masukkan nama dulu!", Toast.LENGTH_SHORT).show()
-            } else {
-                sharedPref.edit { putString("KEY_NAMA", nama) }
-                val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                ambilFoto.launch(intent)
-            }
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            ambilFoto.launch(intent)
         }
 
         btnRiwayat.setOnClickListener {
             startActivity(Intent(this, RiwayatActivity::class.java))
         }
+
+        val sharedPref = getSharedPreferences("DataUser", MODE_PRIVATE)
+        val namaLama = sharedPref.getString("KEY_NAMA", "")
+        if (!namaLama.isNullOrEmpty()) inputNama.setText(namaLama)
     }
 
     private fun ambilLokasiGps() {
@@ -82,58 +122,26 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
             return
         }
-
-        // Coba ambil lokasi terakhir
         val location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-
-        if (location != null) {
-            prosesDanSimpan(location)
-        } else {
-            // Jika lokasi null, minta update lokasi baru
-            Toast.makeText(this, "Mencari lokasi GPS...", Toast.LENGTH_SHORT).show()
-            lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, object : LocationListener {
-                override fun onLocationChanged(loc: Location) {
-                    prosesDanSimpan(loc)
-                    lm.removeUpdates(this) // Stop update setelah dapat satu
-                }
-                override fun onStatusChanged(p: String?, s: Int, e: Bundle?) {}
-                override fun onProviderEnabled(p: String) {}
-                override fun onProviderDisabled(p: String) {}
-            })
-        }
+        location?.let { prosesDanSimpan(it) }
     }
 
     private fun prosesDanSimpan(loc: Location) {
-        val mapView = findViewById<MapView>(R.id.mapView)
         val userPoint = GeoPoint(loc.latitude, loc.longitude)
-
-        // Tampilkan di Peta
+        val mapView = findViewById<MapView>(R.id.mapView)
         mapView.controller.setZoom(18.0)
         mapView.controller.setCenter(userPoint)
+        mapView.overlays.clear()
         val marker = Marker(mapView)
         marker.position = userPoint
-        marker.title = "Lokasi Saya"
-        mapView.overlays.clear()
         mapView.overlays.add(marker)
         mapView.invalidate()
-
-        // Simpan ke SQLite
-        val nama = getSharedPreferences("DataUser", MODE_PRIVATE).getString("KEY_NAMA", "Anonim") ?: "Anonim"
-        val hasil = dbHelper.simpanRiwayat(nama, loc.latitude.toString(), loc.longitude.toString())
         
-        if (hasil != -1L) {
-            Toast.makeText(this, "Data Berhasil Disimpan!", Toast.LENGTH_SHORT).show()
-        }
+        val nama = getSharedPreferences("DataUser", MODE_PRIVATE).getString("KEY_NAMA", "Anonim") ?: "Anonim"
+        dbHelper.simpanRiwayat(nama, loc.latitude.toString(), loc.longitude.toString())
     }
 
-    override fun onResume() {
-        super.onResume()
-        findViewById<MapView>(R.id.mapView).onResume()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        findViewById<MapView>(R.id.mapView).onPause()
-    }
+    override fun onResume() { super.onResume(); findViewById<MapView>(R.id.mapView).onResume() }
+    override fun onPause() { super.onPause(); findViewById<MapView>(R.id.mapView).onPause() }
 }

@@ -4,11 +4,7 @@ plugins {
 
 android {
     namespace = "com.renos.moreno240040017ba244"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.renos.moreno240040017ba244"
@@ -42,6 +38,10 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation("org.osmdroid:osmdroid-android:6.1.18")
+    
+    // MQTT Paho Library - Menggunakan versi Java murni agar tidak crash di AndroidX
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
